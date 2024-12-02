@@ -1,0 +1,4 @@
+{
+	"name": "@joaonmatos/custom-config-parent",
+	"workspaces": ["handler", "library"]
+}

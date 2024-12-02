@@ -1,0 +1,33 @@
+{
+  "name": "@joaonmatos/custom-config-handler",
+  "version": "0.1.0",
+  "type": "module",
+  "author": {
+    "name": "João N. Matos",
+    "email": "me@joaonmatos.com",
+    "url": "https://www.joaonmatos.com/"
+  },
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "prebuild": "tsc --noEmit --rootDir src && biome check --config-path .. --write",
+    "build": "tsc --noEmit --allowJs --checkJs && node build.mjs",
+    "postinstall": "npm run build"
+  },
+  "devDependencies": {
+    "@aws-lambda-powertools/logger": "^2.11.0",
+    "@aws-sdk/client-cloudfront": "^3.699.0",
+    "@aws-sdk/client-s3": "^3.703.0",
+    "@biomejs/biome": "^1.9.4",
+    "@types/aws-lambda": "^8.10.146",
+    "@types/node": "^20.17.9",
+    "camelize-ts": "^3.0.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2",
+    "zod": "^3.23.8"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@joaonmatos/custom-config-constructs",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": {
+    "name": "João N. Matos",
+    "email": "me@joaonmatos.com",
+    "url": "https://www.joaonmatos.com/"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "postinstall": "npm run build",
+    "postbuild": "biome check --config-path .. --write",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^20.17.9",
+    "aws-cdk-lib": "2.171.1",
+    "constructs": "^10.0.0",
+    "typescript": "~5.6.3"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "2.171.1",
+    "constructs": "^10.0.0"
+  },
+  "dependencies": {
+    "@joaonmatos/custom-config-handler": "^0.1.0",
+    "case": "^1.6.3"
+  }
+}
