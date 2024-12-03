@@ -1,6 +1,6 @@
 {
   "name": "@joaonmatos/custom-config-constructs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Custom CDK constructs that pushes CloudFormation resource properties to an S3 file.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,9 +12,10 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "postinstall": "npm run build",
-    "postbuild": "biome check --config-path .. --write",
-    "build": "tsc"
+    "clean": "rm -rf dist",
+    "prebuild": "biome check --config-path .. --write",
+    "build": "tsc",
+    "prepublishOnly": "CI=true npm run build"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -28,7 +29,10 @@
     "constructs": "^10.0.0"
   },
   "dependencies": {
-    "@joaonmatos/custom-config-handler": "^0.1.0",
+    "@joaonmatos/custom-config-handler": "^0.2.0",
     "case": "^1.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
