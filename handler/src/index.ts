@@ -16,18 +16,25 @@ const resourcePropertiesSchema = z
     BucketName: z.string(),
     DestinationKey: z.string(),
     RetainOnDelete: z.boolean().default(false),
-    Camelize: z.boolean().default(true),
+    ServiceToken: z.string(),
   })
   .and(z.record(z.unknown()));
 
 type ResourceProperties = z.infer<typeof resourcePropertiesSchema>;
 
 const parsedPropertiesSchema = resourcePropertiesSchema.transform(
-  ({ BucketName, DestinationKey, RetainOnDelete, Camelize, ...rest }) => ({
+  ({
     BucketName,
     DestinationKey,
     RetainOnDelete,
-    data: Camelize ? toCamelCase(rest) : rest,
+    Camelize,
+    ServiceToken,
+    ...rest
+  }) => ({
+    BucketName,
+    DestinationKey,
+    RetainOnDelete,
+    data: toCamelCase(rest),
   }),
 );
 

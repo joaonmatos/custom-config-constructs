@@ -34,13 +34,12 @@ export class ConfigDeployment extends Construct {
       handler: "index.handler",
       runtime: Runtime.NODEJS_20_X,
       memorySize: 256,
-      timeout: Duration.seconds(59),
+      timeout: Duration.seconds(60),
     });
     this.destinationBucket.grantReadWrite(handler);
 
     const provider = new Provider(this, "ConfigDeploymentFrameworkProvider", {
       onEventHandler: handler,
-      totalTimeout: Duration.seconds(60),
     });
     new CustomResource(this, "ConfigDeploymentCustomResource", {
       serviceToken: provider.serviceToken,
