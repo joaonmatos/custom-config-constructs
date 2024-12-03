@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild'
 await esbuild.build({
   bundle: true,
   platform: 'node',
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/lambda/index.ts'],
   outfile: 'dist/index.mjs',
   external: ['node:*', '@aws-sdk/client-*'],
   charset: 'utf8',

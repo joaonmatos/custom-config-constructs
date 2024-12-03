@@ -1,6 +1,6 @@
 {
   "name": "@joaonmatos/custom-config-handler",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Custom AWS Lambda Function that pushes CloudFormation resource properties to an S3 file.",
   "type": "module",
   "author": {
@@ -11,13 +11,15 @@
   "license": "Apache-2.0",
   "exports": {
     ".": "./dist/index.mjs",
+    "./index.mjs.map": "./dist/index.mjs.map",
     "./package.json": "./package.json"
   },
   "files": ["dist"],
   "scripts": {
-    "prebuild": "tsc --noEmit --rootDir src && biome check --config-path .. --write",
-    "build": "tsc --noEmit --allowJs --checkJs && node build.mjs",
-    "postinstall": "npm run build"
+    "clean": "rm -rf dist",
+    "prebuild": "tsc --noEmit && biome check --config-path .. --write",
+    "build": "node --loader ts-node/esm src/build.ts",
+    "prepublishOnly": "CI=true npm run build"
   },
   "devDependencies": {
     "@aws-lambda-powertools/logger": "^2.11.0",
@@ -28,7 +30,11 @@
     "@types/node": "^20.17.9",
     "camelize-ts": "^3.0.0",
     "esbuild": "^0.24.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "zod": "^3.23.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
