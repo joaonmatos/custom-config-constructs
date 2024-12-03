@@ -1,4 +1,4 @@
 export {
   type ConfigDeploymentProps,
   ConfigDeployment,
-} from './config-deployment'
+} from "./config-deployment";

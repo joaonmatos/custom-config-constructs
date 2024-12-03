@@ -1,3 +1,3 @@
-import { Logger } from '@aws-lambda-powertools/logger'
+import { Logger } from "@aws-lambda-powertools/logger";
 
-export const logger = new Logger()
+export const logger = new Logger();

@@ -2,17 +2,17 @@ import {
   CloudFrontClient,
   CreateInvalidationCommand,
   waitUntilInvalidationCompleted,
-} from '@aws-sdk/client-cloudfront'
+} from "@aws-sdk/client-cloudfront";
 import {
   DeleteObjectCommand,
   PutObjectCommand,
   S3Client,
-} from '@aws-sdk/client-s3'
-import type { CloudFormationCustomResourceHandler } from 'aws-lambda'
-import toCamelCase from 'camelize-ts'
-import { z } from 'zod'
-import { FAILED, SUCCESS, send } from './cfn-response.js'
-import { logger } from './logger.js'
+} from "@aws-sdk/client-s3";
+import type { CloudFormationCustomResourceHandler } from "aws-lambda";
+import toCamelCase from "camelize-ts";
+import { z } from "zod";
+import { FAILED, SUCCESS, send } from "./cfn-response.js";
+import { logger } from "./logger.js";
 
 const resourcePropertiesSchema = z
   .object({
@@ -23,15 +23,15 @@ const resourcePropertiesSchema = z
     DistributionPath: z.string().optional(),
     Camelize: z.boolean().default(true),
   })
-  .and(z.record(z.unknown()))
+  .and(z.record(z.unknown()));
 
-type ResourceProperties = z.infer<typeof resourcePropertiesSchema>
+type ResourceProperties = z.infer<typeof resourcePropertiesSchema>;
 
 const parsedPropertiesSchema = resourcePropertiesSchema
   .refine(
     ({ DistributionId, DistributionPath }) =>
       DistributionId || !DistributionPath,
-    'DistributionPath can only exist if DistributionId exists.',
+    "DistributionPath can only exist if DistributionId exists.",
   )
   .transform(
     ({
@@ -50,22 +50,22 @@ const parsedPropertiesSchema = resourcePropertiesSchema
       DistributionPath,
       data: Camelize ? toCamelCase(rest) : rest,
     }),
-  )
+  );
 
-const s3 = new S3Client()
-const cf = new CloudFrontClient()
+const s3 = new S3Client();
+const cf = new CloudFrontClient();
 
 export const handler: CloudFormationCustomResourceHandler<
   ResourceProperties
 > = async (event, context) => {
-  logger.addContext(context)
+  logger.addContext(context);
   const physicalResourceId =
-    event.RequestType === 'Create'
+    event.RequestType === "Create"
       ? `cdk.publishedConfig.${crypto.randomUUID()}`
-      : event.PhysicalResourceId
+      : event.PhysicalResourceId;
   try {
     const req =
-      event.RequestType === 'Update'
+      event.RequestType === "Update"
         ? {
             ...event,
             ResourceProperties: parsedPropertiesSchema.parse(
@@ -80,15 +80,15 @@ export const handler: CloudFormationCustomResourceHandler<
             ResourceProperties: parsedPropertiesSchema.parse(
               event.ResourceProperties,
             ),
-          }
-    if (req.RequestType === 'Delete') {
+          };
+    if (req.RequestType === "Delete") {
       const { RetainOnDelete, BucketName, DestinationKey } =
-        req.ResourceProperties
+        req.ResourceProperties;
       if (!RetainOnDelete) {
-        await deleteObject(BucketName, DestinationKey)
+        await deleteObject(BucketName, DestinationKey);
       }
     }
-    if (req.RequestType === 'Update') {
+    if (req.RequestType === "Update") {
       const {
         ResourceProperties: {
           BucketName: newBucket,
@@ -99,54 +99,54 @@ export const handler: CloudFormationCustomResourceHandler<
           BucketName: oldBucket,
           DestinationKey: oldKey,
         },
-      } = req
+      } = req;
       if (!RetainOnDelete && (newBucket !== oldBucket || newKey !== oldKey)) {
-        await deleteObject(oldBucket, oldKey)
+        await deleteObject(oldBucket, oldKey);
       }
     }
-    if (req.RequestType === 'Create' || req.RequestType === 'Update') {
-      const { BucketName, DestinationKey, data } = req.ResourceProperties
-      await putObject(BucketName, DestinationKey, data)
+    if (req.RequestType === "Create" || req.RequestType === "Update") {
+      const { BucketName, DestinationKey, data } = req.ResourceProperties;
+      await putObject(BucketName, DestinationKey, data);
     }
     const { DistributionId, DistributionPath, DestinationKey } =
-      req.ResourceProperties
+      req.ResourceProperties;
     if (DistributionId) {
       await invalidateCloudfront(
         DistributionId,
         DistributionPath ?? DestinationKey,
-      )
+      );
     }
     await send({
       event,
       context,
       responseStatus: SUCCESS,
       physicalResourceId,
-    })
+    });
   } catch (e) {
-    logger.error('Failed to process event', {
+    logger.error("Failed to process event", {
       error: e,
-    })
+    });
     await send({
       event,
       context,
       responseStatus: FAILED,
       physicalResourceId,
       reason: e instanceof Error ? e.message : undefined,
-    })
+    });
   }
-}
+};
 
 async function deleteObject(bucketName: string, key: string) {
-  logger.info('Deleting object', {
+  logger.info("Deleting object", {
     bucketName,
     key,
-  })
+  });
   await s3.send(
     new DeleteObjectCommand({
       Bucket: bucketName,
       Key: key,
     }),
-  )
+  );
 }
 
 async function putObject(
@@ -159,9 +159,9 @@ async function putObject(
       Bucket: bucketName,
       Key: key,
       Body: JSON.stringify(data),
-      ContentType: 'application/json',
+      ContentType: "application/json",
     }),
-  )
+  );
 }
 
 async function invalidateCloudfront(distributionId: string, path: string) {
@@ -176,7 +176,7 @@ async function invalidateCloudfront(distributionId: string, path: string) {
         CallerReference: crypto.randomUUID(),
       },
     }),
-  )
+  );
 
   await waitUntilInvalidationCompleted(
     { client: cf, maxWaitTime: 10 },
@@ -184,5 +184,5 @@ async function invalidateCloudfront(distributionId: string, path: string) {
       DistributionId: distributionId,
       Id: res.Invalidation?.Id,
     },
-  )
+  );
 }
