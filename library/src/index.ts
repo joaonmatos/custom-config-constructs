@@ -31,7 +31,7 @@ export class ConfigDeployment extends Construct {
     );
     const handler = new Lambda(this, "ConfigDeploymentProvisionHandler", {
       code: Code.fromAsset(handlerPath),
-      handler: "lambda.handler",
+      handler: "index.handler",
       runtime: Runtime.NODEJS_20_X,
       memorySize: 256,
       timeout: Duration.seconds(59),
