@@ -1,6 +1,6 @@
 {
   "name": "@joaonmatos/custom-config-handler",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Custom AWS Lambda Function that pushes CloudFormation resource properties to an S3 file.",
   "type": "module",
   "author": {

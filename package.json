@@ -1,6 +1,6 @@
 {
   "name": "@joaonmatos/custom-config-parent",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "repository": "github:joaonmatos/custom-config-constructs",
   "workspaces": ["handler", "library"]
 }

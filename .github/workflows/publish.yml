@@ -23,6 +23,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: "*.tgz"
-      - run: npm publish --provenance --workspaces
+      - run: npm publish --workspaces
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
