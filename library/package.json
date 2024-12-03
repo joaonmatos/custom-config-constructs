@@ -1,6 +1,6 @@
 {
   "name": "@joaonmatos/custom-config-constructs",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Custom CDK constructs that pushes CloudFormation resource properties to an S3 file.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "constructs": "^10.0.0"
   },
   "dependencies": {
-    "@joaonmatos/custom-config-handler": "^0.5.0",
+    "@joaonmatos/custom-config-handler": "^0.6.0",
     "case": "^1.6.3"
   },
   "publishConfig": {

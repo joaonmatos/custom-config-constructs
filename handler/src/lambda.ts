@@ -1,63 +1,40 @@
-import {
-  CloudFrontClient,
-  CreateInvalidationCommand,
-  waitUntilInvalidationCompleted,
-} from "@aws-sdk/client-cloudfront";
+import { Logger } from "@aws-lambda-powertools/logger";
 import {
   DeleteObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import type { CloudFormationCustomResourceHandler } from "aws-lambda";
+import type { CdkCustomResourceHandler } from "aws-lambda";
 import toCamelCase from "camelize-ts";
 import { z } from "zod";
-import { FAILED, SUCCESS, send } from "./cfn-response.js";
-import { logger } from "./logger.js";
+
+const logger = new Logger();
+const s3 = new S3Client();
 
 const resourcePropertiesSchema = z
   .object({
     BucketName: z.string(),
     DestinationKey: z.string(),
     RetainOnDelete: z.boolean().default(false),
-    DistributionId: z.string().optional(),
-    DistributionPath: z.string().optional(),
     Camelize: z.boolean().default(true),
   })
   .and(z.record(z.unknown()));
 
 type ResourceProperties = z.infer<typeof resourcePropertiesSchema>;
 
-const parsedPropertiesSchema = resourcePropertiesSchema
-  .refine(
-    ({ DistributionId, DistributionPath }) =>
-      DistributionId || !DistributionPath,
-    "DistributionPath can only exist if DistributionId exists.",
-  )
-  .transform(
-    ({
-      BucketName,
-      DestinationKey,
-      RetainOnDelete,
-      DistributionId,
-      DistributionPath,
-      Camelize,
-      ...rest
-    }) => ({
-      BucketName,
-      DestinationKey,
-      RetainOnDelete,
-      DistributionId,
-      DistributionPath,
-      data: Camelize ? toCamelCase(rest) : rest,
-    }),
-  );
+const parsedPropertiesSchema = resourcePropertiesSchema.transform(
+  ({ BucketName, DestinationKey, RetainOnDelete, Camelize, ...rest }) => ({
+    BucketName,
+    DestinationKey,
+    RetainOnDelete,
+    data: Camelize ? toCamelCase(rest) : rest,
+  }),
+);
 
-const s3 = new S3Client();
-const cf = new CloudFrontClient();
-
-export const handler: CloudFormationCustomResourceHandler<
-  ResourceProperties
-> = async (event, context) => {
+export const handler: CdkCustomResourceHandler<ResourceProperties> = async (
+  event,
+  context,
+) => {
   logger.addContext(context);
   const physicalResourceId =
     event.RequestType === "Create"
@@ -108,31 +85,14 @@ export const handler: CloudFormationCustomResourceHandler<
       const { BucketName, DestinationKey, data } = req.ResourceProperties;
       await putObject(BucketName, DestinationKey, data);
     }
-    const { DistributionId, DistributionPath, DestinationKey } =
-      req.ResourceProperties;
-    if (DistributionId) {
-      await invalidateCloudfront(
-        DistributionId,
-        DistributionPath ?? DestinationKey,
-      );
-    }
-    await send({
-      event,
-      context,
-      responseStatus: SUCCESS,
-      physicalResourceId,
-    });
+    return {
+      PhysicalResourceId: physicalResourceId,
+    };
   } catch (e) {
     logger.error("Failed to process event", {
       error: e,
     });
-    await send({
-      event,
-      context,
-      responseStatus: FAILED,
-      physicalResourceId,
-      reason: e instanceof Error ? e.message : undefined,
-    });
+    throw e;
   }
 };
 
@@ -161,28 +121,5 @@ async function putObject(
       Body: JSON.stringify(data),
       ContentType: "application/json",
     }),
-  );
-}
-
-async function invalidateCloudfront(distributionId: string, path: string) {
-  const res = await cf.send(
-    new CreateInvalidationCommand({
-      DistributionId: distributionId,
-      InvalidationBatch: {
-        Paths: {
-          Quantity: 1,
-          Items: [path],
-        },
-        CallerReference: crypto.randomUUID(),
-      },
-    }),
-  );
-
-  await waitUntilInvalidationCompleted(
-    { client: cf, maxWaitTime: 10 },
-    {
-      DistributionId: distributionId,
-      Id: res.Invalidation?.Id,
-    },
   );
 }

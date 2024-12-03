@@ -3,9 +3,9 @@ import * as esbuild from "esbuild";
 await esbuild.build({
   bundle: true,
   platform: "node",
-  entryPoints: ["src/lambda/index.ts"],
-  outfile: "dist/index.mjs",
-  external: ["node:*", "@aws-sdk/client-*"],
+  entryPoints: ["src/lambda.ts"],
+  outfile: "dist/lambda.mjs",
+  external: ["node:*", "@aws-sdk/client-s3"],
   charset: "utf8",
   format: "esm",
   mainFields: ["module"],
