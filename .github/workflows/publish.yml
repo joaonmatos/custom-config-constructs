@@ -1,0 +1,28 @@
+name: Release and publish to NPM
+on:
+  push:
+    tags:
+      - "v*.*.*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      discussions: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci --workspaces
+      - run: npm run prepublishOnly --workspaces
+      - run: npm pack --workspaces
+      - name: Publish to Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.tgz"
+      - run: npm publish --provenance --workspaces
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
